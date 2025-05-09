@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+
+{% block title %}Meus Projetos - Kanban Board{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h2 class="mb-0">
+            <i class="fas fa-project-diagram me-2"></i>Meus Projetos
+        </h2>
+    </div>
+    <div class="col text-end">
+        <a href="{% url 'project-create' %}" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>Novo Projeto
+        </a>
+    </div>
+</div>
+
+<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+    {% for project in projects %}
+    <div class="col">
+        <div class="card h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <h5 class="card-title mb-0">{{ project.title }}</h5>
+                    <div class="dropdown">
+                        <button class="btn btn-link text-dark p-0" type="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-ellipsis-v"></i>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li>
+                                <a class="dropdown-item" href="{% url 'project-update' project.pk %}">
+                                    <i class="fas fa-edit me-2"></i>Editar
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item text-danger" href="{% url 'project-delete' project.pk %}">
+                                    <i class="fas fa-trash-alt me-2"></i>Excluir
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <p class="card-text text-muted mb-3">
+                    {% if project.description %}
+                        {{ project.description|truncatewords:30 }}
+                    {% else %}
+                        <em>Sem descrição</em>
+                    {% endif %}
+                </p>
+
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="small text-muted">
+                        <i class="fas fa-users me-1"></i>{{ project.members.count }} membros
+                    </div>
+                    <a href="{% url 'project-detail' project.pk %}" class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-tasks me-1"></i>Ver Board
+                    </a>
+                </div>
+            </div>
+            <div class="card-footer bg-transparent">
+                <small class="text-muted">
+                    <i class="far fa-calendar-alt me-1"></i>Criado em {{ project.created_at|date:"d/m/Y" }}
+                </small>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <i class="fas fa-clipboard-list fa-3x text-muted mb-3"></i>
+                <h5>Nenhum projeto encontrado</h5>
+                <p class="text-muted mb-3">Você ainda não tem nenhum projeto. Que tal criar um agora?</p>
+                <a href="{% url 'project-create' %}" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>Criar Novo Projeto
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
