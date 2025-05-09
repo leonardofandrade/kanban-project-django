@@ -6,6 +6,7 @@ from django.urls import reverse_lazy
 from django.http import JsonResponse
 from .models import Project, Column, Task
 from .forms import ProjectForm, ColumnForm, TaskForm, TaskMoveForm
+from django.db.models import Q
 
 class ProjectListView(LoginRequiredMixin, ListView):
     model = Project
