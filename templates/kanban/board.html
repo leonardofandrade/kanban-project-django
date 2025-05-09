@@ -1,0 +1,241 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ project.title }} - Board{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0">
+        <i class="fas fa-clipboard-list me-2"></i>{{ project.title }}
+    </h2>
+    <div class="btn-group">
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newTaskModal">
+            <i class="fas fa-plus me-2"></i>Nova Tarefa
+        </button>
+        <button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown"></button>
+        <ul class="dropdown-menu dropdown-menu-end">
+            <li>
+                <button type="button" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#newColumnModal">
+                    <i class="fas fa-columns me-2"></i>Nova Coluna
+                </button>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+                <a href="{% url 'project-update' project.pk %}" class="dropdown-item">
+                    <i class="fas fa-edit me-2"></i>Editar Projeto
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'project-delete' project.pk %}" class="dropdown-item text-danger">
+                    <i class="fas fa-trash-alt me-2"></i>Excluir Projeto
+                </a>
+            </li>
+        </ul>
+    </div>
+</div>
+
+<div class="board-container">
+    <div class="row flex-nowrap overflow-auto pb-3">
+        {% for column in columns %}
+        <div class="col-12 col-md-3">
+            <div class="column" data-column-id="{{ column.id }}">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="mb-0">{{ column.title }}</h5>
+                    <button type="button" class="btn btn-sm btn-primary" 
+                            data-bs-toggle="modal" 
+                            data-bs-target="#newTaskModal" 
+                            data-column-id="{{ column.id }}">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+
+                <div class="task-list" data-column-id="{{ column.id }}">
+                    {% for task in column.tasks.all %}
+                        {% include 'kanban/components/task_card.html' with task=task %}
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- New Task Modal -->
+<div class="modal fade" id="newTaskModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Nova Tarefa</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" action="{% url 'task-create' columns.first.id %}" class="task-form">
+                <div class="modal-body">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label">Título</label>
+                        <input type="text" name="title" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Descrição</label>
+                        <textarea name="description" class="form-control" rows="3"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Responsável</label>
+                        <select name="assigned_to" class="form-select">
+                            <option value="">Sem responsável</option>
+                            {% for member in project.members.all %}
+                                <option value="{{ member.id }}">{{ member.username }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Data de Entrega</label>
+                        <input type="date" name="due_date" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Prioridade</label>
+                        <select name="label" class="form-select">
+                            <option value="low">Baixa</option>
+                            <option value="medium" selected>Média</option>
+                            <option value="high">Alta</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>Criar Tarefa
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- New Column Modal -->
+<div class="modal fade" id="newColumnModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Nova Coluna</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" action="{% url 'column-create' project.id %}">
+                <div class="modal-body">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label">Título</label>
+                        <input type="text" name="title" class="form-control" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>Criar Coluna
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .board-container {
+        margin: 0 -1rem;
+        padding: 0 1rem;
+    }
+    
+    .column {
+        min-width: 300px;
+        min-height: calc(100vh - 250px);
+    }
+    
+    .task-list {
+        min-height: 50px;
+    }
+    
+    .task-card.dragging {
+        opacity: 0.5;
+    }
+    
+    .task-list.drag-over {
+        background-color: rgba(0,0,0,0.05);
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const taskCards = document.querySelectorAll('.task-card');
+    const taskLists = document.querySelectorAll('.task-list');
+    
+    // Update task form action when creating a new task
+    document.querySelector('#newTaskModal').addEventListener('show.bs.modal', function(event) {
+        const button = event.relatedTarget;
+        const columnId = button.dataset.columnId;
+        if (columnId) {
+            const form = this.querySelector('form');
+            form.action = `/column/${columnId}/task/create/`;
+        }
+    });
+
+    // Drag and Drop functionality
+    taskCards.forEach(card => {
+        card.addEventListener('dragstart', () => {
+            card.classList.add('dragging');
+        });
+
+        card.addEventListener('dragend', () => {
+            card.classList.remove('dragging');
+            const newColumn = card.closest('.task-list');
+            const taskId = card.dataset.taskId;
+            const columnId = newColumn.dataset.columnId;
+            
+            // Get task position
+            const position = Array.from(newColumn.children).indexOf(card);
+            
+            // Send update to server
+            fetch(`/task/${taskId}/move/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: `column=${columnId}&order=${position}`
+            });
+        });
+    });
+
+    taskLists.forEach(list => {
+        list.addEventListener('dragover', e => {
+            e.preventDefault();
+            list.classList.add('drag-over');
+            const dragging = document.querySelector('.dragging');
+            const notDragging = [...list.querySelectorAll('.task-card:not(.dragging)')];
+            
+            const nextCard = notDragging.find(card => {
+                const rect = card.getBoundingClientRect();
+                return e.clientY < rect.top + rect.height / 2;
+            });
+            
+            if (nextCard) {
+                list.insertBefore(dragging, nextCard);
+            } else {
+                list.appendChild(dragging);
+            }
+        });
+
+        list.addEventListener('dragleave', () => {
+            list.classList.remove('drag-over');
+        });
+
+        list.addEventListener('drop', () => {
+            list.classList.remove('drag-over');
+        });
+    });
+});
+</script>
+{% endblock %}
