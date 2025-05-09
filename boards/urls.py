@@ -1,7 +1,9 @@
 from django.urls import path
 from . import views
+from .dashboard_views import DashboardView
 
 urlpatterns = [
+    path('dashboard/', DashboardView.as_view(), name='dashboard'),
     path('', views.ProjectListView.as_view(), name='project-list'),
     path('project/new/', views.ProjectCreateView.as_view(), name='project-create'),
     path('project/<int:pk>/', views.ProjectDetailView.as_view(), name='project-detail'),
