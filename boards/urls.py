@@ -16,4 +16,8 @@ urlpatterns = [
     path('task/<int:task_id>/update/', views.update_task, name='task-update'),
     path('task/<int:task_id>/delete/', views.delete_task, name='task-delete'),
     path('task/<int:task_id>/move/', views.move_task, name='task-move'),
+
+    # New tabular task views
+    path('tasks/', views.TaskListView.as_view(), name='task-list'),
+    path('task/<int:pk>/edit/', views.TaskUpdateView.as_view(), name='task-edit'),
 ]

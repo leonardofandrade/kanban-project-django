@@ -21,13 +21,15 @@ class ColumnForm(forms.ModelForm):
 class TaskForm(forms.ModelForm):
     class Meta:
         model = Task
-        fields = ['title', 'description', 'assigned_to', 'due_date', 'label']
+        fields = ['title', 'description', 'assigned_to', 'due_date', 'label', 'status', 'column']
         widgets = {
             'title': forms.TextInput(attrs={'class': 'form-control'}),
             'description': forms.Textarea(attrs={'rows': 3, 'class': 'form-control'}),
             'assigned_to': forms.Select(attrs={'class': 'form-select'}),
             'due_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'label': forms.Select(attrs={'class': 'form-select'}),
+            'status': forms.Select(attrs={'class': 'form-select'}),
+            'column': forms.Select(attrs={'class': 'form-select'}),
         }
 
 class TaskMoveForm(forms.ModelForm):

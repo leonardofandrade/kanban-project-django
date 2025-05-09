@@ -116,6 +116,71 @@ def move_task(request, task_id):
         task = get_object_or_404(Task, id=task_id)
         form = TaskMoveForm(request.POST, instance=task)
         if form.is_valid():
-            form.save()
+            task = form.save(commit=False)
+            # Update status based on column title
+            column_title = task.column.title.lower()
+            if 'fazer' in column_title or 'todo' in column_title:
+                task.status = 'todo'
+            elif 'andamento' in column_title or 'progress' in column_title:
+                task.status = 'in_progress'
+            elif 'concluído' in column_title or 'done' in column_title:
+                task.status = 'done'
+            else:
+                task.status = 'todo'
+            task.save()
             return JsonResponse({'status': 'success'})
     return JsonResponse({'status': 'error'}, status=400)
+
+class TaskListView(LoginRequiredMixin, ListView):
+    model = Task
+    template_name = 'kanban/task_list.html'
+    context_object_name = 'tasks'
+    paginate_by = 20
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        query = self.request.GET.get('q')
+        if query:
+            queryset = queryset.filter(
+                Q(title__icontains=query) |
+                Q(description__icontains=query) |
+                Q(assigned_to__username__icontains=query) |
+                Q(column__title__icontains=query) |
+                Q(status__icontains=query)
+            ).distinct()
+        return queryset.order_by('status', 'order', 'created_at')
+
+class TaskUpdateView(LoginRequiredMixin, UpdateView):
+    model = Task
+    form_class = TaskForm
+    template_name = 'kanban/task_form.html'
+
+    def get_success_url(self):
+        return reverse_lazy('task-list')
+
+class TaskListView(LoginRequiredMixin, ListView):
+    model = Task
+    template_name = 'kanban/task_list.html'
+    context_object_name = 'tasks'
+    paginate_by = 20
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        query = self.request.GET.get('q')
+        if query:
+            queryset = queryset.filter(
+                Q(title__icontains=query) |
+                Q(description__icontains=query) |
+                Q(assigned_to__username__icontains=query) |
+                Q(column__title__icontains=query) |
+                Q(status__icontains=query)
+            ).distinct()
+        return queryset.order_by('status', 'order', 'created_at')
+
+class TaskUpdateView(LoginRequiredMixin, UpdateView):
+    model = Task
+    form_class = TaskForm
+    template_name = 'kanban/task_form.html'
+
+    def get_success_url(self):
+        return reverse_lazy('task-list')
